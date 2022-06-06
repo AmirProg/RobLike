@@ -6,7 +6,7 @@
 
 /***********************************************************************************************
 *
-* ~ Matrix<> class ~
+* ~ Matrix<> class ~ -> From "All Mighty" (AmirProg)
 *
 * Manage a Matrix object, useful to linearize 2D array and vector
 *
@@ -16,6 +16,8 @@
 * You can also modify this memory case : matrix(x,y) = newValue
 *
 * Useful for linearization of 2D array/vector
+*
+*
 *
 ************************************************************************************************/
 

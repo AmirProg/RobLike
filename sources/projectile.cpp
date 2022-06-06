@@ -3,18 +3,17 @@
 Projectile::Projectile() : Projectile(10)
 {}
 
-Projectile::Projectile(unsigned int speed) : Projectile(300,400, 0, speed){
+Projectile::Projectile(unsigned int speed) : Projectile(300,400, 0, speed, 3, sf::Color::White){
 
   circle_.setFillColor(sf::Color::Red);
   circle_.setPosition(300,400);
-
   circle_.setRadius(3);
 }
 
-Projectile::Projectile(float x, float y, float direction, int speed) : speed_(speed), dir_(direction){
+Projectile::Projectile(float x, float y, float direction, int speed, int radiusProj, const sf::Color& colorProj) : speed_(speed), dir_(direction){
 
-  circle_.setRadius(3);
-  circle_.setFillColor(sf::Color::White);
+  circle_.setRadius(radiusProj);
+  circle_.setFillColor(colorProj);
   circle_.setPosition(x,y);
 }
 
@@ -49,6 +48,21 @@ sf::Vector2f Projectile::getMV() const{
     return sf::Vector2f(0, speed_);
   else
     return sf::Vector2f(0,0);
+}
+
+void Projectile::increaseRadius(int radius){
+
+  circle_.setRadius(circle_.getRadius() + radius);
+}
+
+void Projectile::changeColor(const sf::Color& color){
+
+  circle_.setFillColor(color);
+}
+
+void Projectile::increaseSpeed(int speed){
+
+  speed_ += speed;
 }
 
 void Projectile::draw(sf::RenderTarget& target, sf::RenderStates states) const{

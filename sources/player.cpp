@@ -1,17 +1,18 @@
 #include "player.hpp"
 #include <iostream>
+#include <string>
 
-Player::Player() : Player("Sans nom", 10, "Epee brisee")
+Player::Player() : Player("Sans nom", 0, 0)
 {}
 
 /* Le nombre de sprites dans la sheet est considéré unitaire sauf indication contraire */
 
-Player::Player(const std::string& playerName, unsigned int speed, const std::string& weapon) : playerName_(playerName), speed_(speed), weapon_(weapon), dir_(Direction::None), anim_(spritePlayer_, sf::Vector2u(1,1)), lineSheet_(1), dimSheet_(sf::Vector2u(1,1)), fireRate_(200){
+Player::Player(const std::string& playerName, unsigned int speed, int damage) : playerName_(playerName), speed_(speed), dir_(Direction::None), anim_(spritePlayer_, sf::Vector2u(1,1)), lineSheet_(1), dimSheet_(sf::Vector2u(1,1)), fireRate_(200), health_(200), hpText_(), damage_(damage), radiusProj_(3), colorProj_(sf::Color::White){
   spritePlayer_.setPosition(300,400);
   tabProjectile_.clear();
 }
 
-Player::Player(const std::string& playerName, unsigned int speed, const std::string& weapon, const std::string& pathTexture, const sf::Vector2u& dimSheet) : Player(playerName, speed, weapon){
+Player::Player(const std::string& playerName, unsigned int speed, int damage, const std::string& pathTexture, const sf::Vector2u& dimSheet) : Player(playerName, speed, damage){
 
   dimSheet_ = dimSheet;
 
@@ -25,7 +26,23 @@ Player::Player(const std::string& playerName, unsigned int speed, const std::str
     anim_.setFrame(150);
   }
 
+  if(!textureGui_.loadFromFile("items.png"))
+    std::cerr << "Erreur texture player" << std::endl;
+
+  spriteHealth_.setTexture(textureGui_);
+  spriteHealth_.setPosition(0,0);
+  spriteHealth_.setTextureRect((sf::IntRect(0,64,64,64)));
 }
+
+void Player::setFont(const sf::Font& font){
+
+  hpText_.setFont(font);
+  hpText_.setString(std::to_string(health_));
+  hpText_.setCharacterSize(25);
+  hpText_.setFillColor(sf::Color::Red);
+  hpText_.setPosition(60,12);
+}
+
 
 void Player::move(){
 
@@ -59,10 +76,32 @@ void Player::attack(){
 
   if(clockPlayer_.getElapsedTime().asMilliseconds() > fireRate_){
 
-    tabProjectile_.push_back(Projectile(getBox().left, getBox().top, angle_, 3));
+    tabProjectile_.push_back(Projectile(getBox().left + getBox().width/2, getBox().top + getBox().height/2, angle_, 3, radiusProj_, colorProj_));
     clockPlayer_.restart();
-
   }
+}
+
+void Player::getHealthDamage(int damage){
+
+  if(invuFrame_.getElapsedTime().asMilliseconds() > 800 && health_ > 0){
+    health_ -= damage;
+    invuFrame_.restart();
+  }
+
+  if(health_ <= 0)
+    health_ = 0;
+
+  updateCharac();
+}
+
+bool Player::isAlive() const{
+
+  return health_ > 0;
+}
+
+void Player::updateCharac(){
+
+  hpText_.setString(std::to_string(health_));
 }
 
 void Player::setDir(Direction dir){
@@ -73,6 +112,21 @@ void Player::setDir(Direction dir){
 void Player::setPosition(const sf::Vector2f& pos){
 
   spritePlayer_.setPosition(pos);
+}
+
+void Player::setGuiPosition(PositionGUI pos){
+
+  if(pos == PositionGUI::Up){
+
+    hpText_.setPosition(hpText_.getPosition().x, 12);
+    spriteHealth_.setPosition(spriteHealth_.getPosition().x, 0);
+  }
+
+  else{
+
+    hpText_.setPosition(hpText_.getPosition().x, 592);
+    spriteHealth_.setPosition(0,580);
+  }
 }
 
 void Player::setSpeed(int speed){
@@ -100,6 +154,42 @@ void Player::setBase(const sf::Vector2u& base){
   anim_.setBase(base);
 }
 
+int Player::getDamage() const{
+
+  return damage_;
+}
+
+int Player::getSpeed() const{
+
+  return speed_;
+}
+
+void Player::increaseDamage(int damage){
+
+  damage_ += damage;
+}
+
+void Player::increaseRadiusProj(int radius){
+
+  radiusProj_ += radius;
+}
+
+void Player::changeColorProj(const sf::Color& color){
+
+  colorProj_ = color;
+}
+
+void Player::increaseSpeedProj(int speed){
+
+  for(auto& p : tabProjectile_)
+    p.increaseSpeed(speed);
+}
+
+void Player::increaseFireRate(unsigned int fireRate){
+
+  fireRate_ -= fireRate;
+}
+
 void Player::animate(){
 
   anim_.playAnimationLine(lineSheet_);
@@ -107,15 +197,13 @@ void Player::animate(){
 
 bool Player::hasProj(){ // on teste si le joueur a des projectiles encore "vivants"
 
-  if(tabProjectile_.size() > 0)
-    return true;
-  else
-    return false;
+  return tabProjectile_.size() > 0;
 }
 
 void Player::deleteProj(std::size_t k){
 
-  tabProjectile_.erase(std::begin(tabProjectile_)+k);
+    if(std::size(tabProjectile_) > k)
+      tabProjectile_.erase(std::begin(tabProjectile_)+k);
 }
 
 sf::Vector2f Player::getMV() const{
@@ -144,6 +232,9 @@ void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const{
 
   for(size_t k = 0; k < tabProjectile_.size(); k++)
       target.draw(tabProjectile_[k], states);
+
+  target.draw(spriteHealth_, states);
+  target.draw(hpText_, states);
 }
 
 sf::FloatRect Player::getBox() const{

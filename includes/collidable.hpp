@@ -12,10 +12,9 @@ class Collidable{
 public:
 
   Collidable() = default;
-
-protected:
-
   virtual sf::FloatRect getBox() const = 0;
+  
+protected:
 
   sf::FloatRect hitBox_;
 };

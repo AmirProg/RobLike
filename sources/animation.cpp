@@ -40,11 +40,11 @@ void Animation::setDim(const sf::Vector2u& dimSheet){
 
   dimSheet_ = dimSheet;
 }
-#include <iostream>
+
 void Animation::playAnimationLine(std::size_t lineSheet){
 
     status_ = Status::Active;
-    
+
     if(timer_.getElapsedTime().asMilliseconds() >= sf::Int32(frame_) || currentSprite_.y != lineSheet){ // Every frame or when we change the current line on the sheet
 
         cut(sf::Vector2u(currentSprite_.x,lineSheet));

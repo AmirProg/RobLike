@@ -41,6 +41,7 @@ public:
   sf::Sprite getTileWithPosition(const sf::Vector2f& position) const;
   int getTileNumber(const sf::Vector2u& index) const;
   sf::Vector2u getNumberTiles() const;
+  void changeTile(const sf::Vector2u& index, int newTile);
 
 private:
   sf::Texture texture_;

@@ -10,7 +10,6 @@ Représente tous les types d'items collectables par le joueur
 ***/
 
 #include "collidable.hpp"
-
 class Player;
 
 class Item : public sf::Drawable, public Collidable{
@@ -18,7 +17,7 @@ class Item : public sf::Drawable, public Collidable{
 public:
 
   Item();
-  Item(const std::string& name, const std::string& effect, int rarity, bool unique);
+  Item(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>&);
   Item(const std::string& pathTexture);
   Item(const Item&);
   virtual ~Item() = default;
@@ -36,6 +35,7 @@ protected:
   sf::Texture itemTexture_;
   sf::Sprite itemSprite_;
   int index_; // Correspond à son index dans le tableau de la map
+  std::function<void(Player&)> func_;
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 };
@@ -45,7 +45,7 @@ class PassiveItem : public Item{
 public:
 
   PassiveItem();
-  PassiveItem(const std::string& name, const std::string& effect, int rarity, bool unique);
+  PassiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func);
   virtual ~PassiveItem() = default;
   virtual void info() const override;
   virtual void activate(Player& player) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé
@@ -59,7 +59,7 @@ class ActiveItem : public Item{
 public:
 
   ActiveItem();
-  ActiveItem(const std::string& name, const std::string& effect, int rarity, bool unique);
+  ActiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func);
   virtual ~ActiveItem() = default;
   virtual void info() const override;
   virtual void activate(Player& player) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé

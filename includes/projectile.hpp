@@ -15,14 +15,18 @@ public:
 
   Projectile();
   Projectile(unsigned int speed);
-  Projectile(float x, float y, float direction, int speed);
+  Projectile(float x, float y, float direction, int speed, int radiusProj, const sf::Color& colorProj);
+
   virtual ~Projectile() = default;
   void move();
   void setSpeed(unsigned int speed);
   sf::Vector2f getMV() const;
+  void increaseRadius(int radius);
+  void changeColor(const sf::Color& color);
+  void increaseSpeed(int speed);
+  void setBox(const sf::FloatRect& box);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   virtual sf::FloatRect getBox() const override;
-
 
 private:
   sf::CircleShape circle_;

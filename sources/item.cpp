@@ -1,13 +1,14 @@
 #include <iostream>
 #include "item.hpp"
 
-Item::Item() : Item("NONE", "NONE EFFECT", -1, false)
+Item::Item() : Item("NONE", "NONE EFFECT", -1, false, std::function<void(Player&)>())
 {}
 
-Item::Item(const std::string& name, const std::string& effect, int rarity, bool unique) :
+Item::Item(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func) :
   name_(name),
   infoEffect_(effect),
-  rarity_(rarity)
+  rarity_(rarity),
+  func_(func)
 {}
 
 Item::Item(const std::string& pathTexture){
@@ -48,7 +49,7 @@ void Item::draw(sf::RenderTarget& target, sf::RenderStates states) const{
 PassiveItem::PassiveItem() : Item()
 {}
 
-PassiveItem::PassiveItem(const std::string& name, const std::string& effect, int rarity, bool unique) : Item(name, effect, rarity, unique)
+PassiveItem::PassiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func) : Item(name, effect, rarity, unique, func)
 {}
 
 void PassiveItem::info() const{
@@ -61,14 +62,14 @@ void PassiveItem::info() const{
 
 void PassiveItem::activate(Player& player) const{ // Active l'effet de l'item sur le joueur l'ayant ramassé
 
-  std::cout << "ITEM COLLECTED" << std::endl << std::endl;
+  func_(player);
   info();
 };
 
 ActiveItem::ActiveItem() : Item()
 {}
 
-ActiveItem::ActiveItem(const std::string& name, const std::string& effect, int rarity, bool unique) : Item(name, effect, rarity, unique)
+ActiveItem::ActiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func) : Item(name, effect, rarity, unique, func)
 {}
 
 void ActiveItem::info() const{
@@ -80,5 +81,7 @@ void ActiveItem::info() const{
 }
 
 void ActiveItem::activate(Player& player) const{
-  // TODO
+
+  func_(player);
+  info();
 }

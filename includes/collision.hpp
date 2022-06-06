@@ -5,6 +5,8 @@
 #include "tileMapProperties.hpp"
 #include "item.hpp"
 #include <random>
+#include <SFML/System.hpp>
+#include <time.h>
 
 /**************************************************************
 * ~ Collision manager  ~
@@ -15,16 +17,23 @@
 *   // Do
 *
 ***************************************************************/
+/*static inline bool intersectEntity(const T& A, const U& B){
+
+    sf::FloatRect boxA = { A.getBox().left, A.getBox().top, A.getBox().width, A.getBox().height };
+    sf::FloatRect boxB = { B.getBox().left, B.getBox().top, B.getBox().width, B.getBox().height };
+    return boxA.intersects(boxB);
+}*/
 
 namespace Collision{
 
   template<typename T, typename U>
-  static inline bool intersect(const T& A, const U& B){
+  static inline bool intersectEntity(const T& A, const U& B){
+
 
       return !(A.getBox().left + A.getBox().width < B.getBox().left ||
-                  A.getBox().top + A.getBox().height < B.getBox().top ||
-                  A.getBox().left > B.getBox().left + B.getBox().width ||
-                  A.getBox().top > B.getBox().top + B.getBox().height);
+              A.getBox().top + A.getBox().height < B.getBox().top ||
+              A.getBox().left > B.getBox().left + B.getBox().width ||
+              A.getBox().top > B.getBox().top + B.getBox().height);
   }
 
   template<typename T>
@@ -173,27 +182,32 @@ namespace Collision{
 
     sf::Vector2f newPos(A.getBox().left + dxy.x, A.getBox().top + dxy.y);
     sf::Vector2f dim(A.getBox().width, A.getBox().height);
-std::cout << dim.x << " " << dim.y << std::endl;
     if (Collision::collisionTileStatePos(newPos, dim, tileMap, prop, state))
         return true;
 
     return false;
   }
 
-  static inline void collisionWithItem(Player& player, const TileMap& tileMap, TileMapProperties& prop, const std::vector<Item*>& items, const std::string& state, const sf::RenderWindow& window){
+  static inline void collisionWithItem(Player& player, TileMap* tileMap, TileMapProperties& prop, const std::vector<Item*>& items, const std::string& state, const sf::RenderWindow& window, sf::Clock& clock){
 
     sf::Vector2u positionIndex;
 
     /* On tire un entier aléatoirement entre 0 et le nombre d'items - 1 */
 
-    std::random_device rd;
-    std::default_random_engine e(rd());
-    std::uniform_int_distribution<int> dist(0,items.size()-1);
+    if(clock.getElapsedTime().asMilliseconds() > 100){
+      
+      std::random_device rd;
+      std::default_random_engine e(rd());
+      std::uniform_int_distribution<int> dist(0,items.size()-1);
 
-    int i { dist(e) };
+      int i { dist(e) };
 
-    if(Collision::collisionTileState(player, tileMap, prop, state, positionIndex))
+      if(Collision::collisionTileState(player, *tileMap, prop, state, positionIndex)){
         items[i]->activate(player); // On réindexe le tableau, items commence à 0 et c'est équivalent au (index - nombre_total_tiles + nombre_items) % nombre_items
+        tileMap->changeTile(sf::Vector2u(positionIndex.x, positionIndex.y), 1);
+        clock.restart();
+      }
+    }
   }
 }
 

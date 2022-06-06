@@ -75,7 +75,7 @@ TileMap& TileMap::operator=(const TileMap& map){
   texture_ = map.texture_;
   spriteSheet_ = map.spriteSheet_;
   numberTiles_ = map.numberTiles_;
-  std::cout << numberTiles_.x;
+
   mapMatrix_.resize(numberTiles_.y, numberTiles_.x);
   mapMatrix_ = map.mapMatrix_;
 
@@ -206,4 +206,13 @@ int TileMap::getTileNumber(const sf::Vector2u& index) const{
 sf::Vector2u TileMap::getNumberTiles() const{
 
   return numberTiles_;
+}
+
+void TileMap::changeTile(const sf::Vector2u& index, int newTile){
+
+  sprites_.clear();
+  spriteSheet_.setTexture(texture_);
+  mapMatrix_(index.x-1,index.y-1) = newTile;
+
+  fillMap();
 }
