@@ -7,6 +7,8 @@
 #include "animation.hpp"
 #include "projectile.hpp"
 
+class Monster;
+
 /*** ~ Class Player
 
 Représente les joueurs du jeu, les caractéristiques des personnages, leurs animations, leurs armes...
@@ -46,8 +48,11 @@ public:
   void changeColorProj(const sf::Color& color);
   void increaseSpeedProj(int speed);
   void increaseFireRate(unsigned int fireRate);
+  void healthUp(int hp);
+  void setHoming(bool homing);
   void animate();
-  void moveProjectile();
+  sf::Vector2f getPositionNearestMonster(const std::vector<Monster*>& monsters); // Obtient la position sur la fenêtre du monstre le plus proche (utile enc as de homing projectiles)
+  void moveProjectile(const std::vector<Monster*>& monsters);
   bool hasProj();
   void deleteProj(std::size_t k); // Supprime le k-eme projectile
   sf::Vector2f getMV() const;
@@ -77,6 +82,7 @@ private:
   sf::Color colorProj_;
   int radiusProj_;
   std::vector<Projectile> tabProjectile_ = {};
+  bool homing_ = false; // Tirs tête-chercheuse
   sf::Clock clockPlayer_;
   sf::Clock invuFrame_;
 };

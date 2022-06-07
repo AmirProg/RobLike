@@ -19,6 +19,7 @@ public:
 
   virtual ~Projectile() = default;
   void move();
+  void move(const sf::Vector2f& target); // En cas de tir homing -> suivi de la position d'une cible
   void setSpeed(unsigned int speed);
   sf::Vector2f getMV() const;
   void increaseRadius(int radius);

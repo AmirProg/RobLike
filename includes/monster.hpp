@@ -23,7 +23,7 @@ public:
   Monster(const Monster& monster);
   Monster& operator=(const Monster& monster);
 
-  virtual ~Monster() = default;
+  virtual ~Monster();
   virtual void setPosition(const sf::Vector2f& v) override;
   virtual void move(const sf::Vector2f& dv) override;
   void setSpeed(int speed);
@@ -36,6 +36,7 @@ public:
   int getDamage() const;
   void getHealthDamage(int damage);
   bool isAlive() const;
+  int getHealth() const;
   sf::Vector2i getMV() const;
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   virtual sf::FloatRect getBox() const override;

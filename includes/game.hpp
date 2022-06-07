@@ -16,7 +16,8 @@ class Game{
 
 public:
   Game();
-  ~Game() = default;
+  ~Game(); // S'occupera de libérer les monstres qu'on met sur le tas dynamiquement
+  void startMenu();
   void start();
   void showMenu();
 
@@ -31,12 +32,15 @@ private:
   std::vector<Item*> items_;
   std::vector<sf::Drawable*> drawableResources_;
   TileMap* currentTileMap_;
-  std::vector<Monster> monsters_;
+  std::vector<Monster*> monsters_;
   Menu menu_;
   sf::Text gameOver;
   sf::Clock timeGameOver_;
   sf::Clock mapTransition_;
   sf::Clock itemCollectedDelay_;
+  sf::Clock deathMonster_;
+  sf::Clock frameRate_;
+  std::size_t frame_;
   bool playing_;
 
   sf::Texture texture1;

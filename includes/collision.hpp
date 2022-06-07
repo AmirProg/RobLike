@@ -188,14 +188,14 @@ namespace Collision{
     return false;
   }
 
-  static inline void collisionWithItem(Player& player, TileMap* tileMap, TileMapProperties& prop, const std::vector<Item*>& items, const std::string& state, const sf::RenderWindow& window, sf::Clock& clock){
+  static inline void collisionWithItem(Player& player, TileMap* tileMap, TileMapProperties& prop, const std::vector<Item*>& items, const std::string& state, sf::RenderWindow& window, sf::Clock& clock, std::size_t& frame){
 
     sf::Vector2u positionIndex;
 
     /* On tire un entier aléatoirement entre 0 et le nombre d'items - 1 */
 
     if(clock.getElapsedTime().asMilliseconds() > 100){
-      
+
       std::random_device rd;
       std::default_random_engine e(rd());
       std::uniform_int_distribution<int> dist(0,items.size()-1);
@@ -203,7 +203,7 @@ namespace Collision{
       int i { dist(e) };
 
       if(Collision::collisionTileState(player, *tileMap, prop, state, positionIndex)){
-        items[i]->activate(player); // On réindexe le tableau, items commence à 0 et c'est équivalent au (index - nombre_total_tiles + nombre_items) % nombre_items
+        items[i]->activate(player, window, frame); // On réindexe le tableau, items commence à 0 et c'est équivalent au (index - nombre_total_tiles + nombre_items) % nombre_items
         tileMap->changeTile(sf::Vector2u(positionIndex.x, positionIndex.y), 1);
         clock.restart();
       }

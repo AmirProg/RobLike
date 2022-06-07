@@ -6,7 +6,8 @@
 
 /*** ~ Class Floor
 
-Permet de gérer un étage entier (ensemble de maps et d'ennemis qu'on ajoute à la scène) ***/
+Permet de gérer un étage entier (ensemble de maps et d'ennemis qu'on ajoute à la scène)
+Pour le moment un Floor est seulement un assemblage de TileMaps ***/
 
 class Floor{
 
@@ -19,6 +20,7 @@ public:
   void clearFloor();
   void drawMap(sf::RenderWindow& window, std::size_t index);
   TileMap* getMap(std::size_t index); // On renvoie un pointeur vers la map d'index voulu
+  std::size_t getNumberMaps() const;
 
 private:
 

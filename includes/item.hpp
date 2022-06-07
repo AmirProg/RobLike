@@ -21,9 +21,10 @@ public:
   Item(const std::string& pathTexture);
   Item(const Item&);
   virtual ~Item() = default;
-  virtual void info() const = 0;
-  virtual void activate(Player& player) const = 0; // Active l'effet de l'item sur le joueur l'ayant ramassé
+  virtual void info(sf::RenderWindow& window) const = 0;
+  virtual void activate(Player& player, sf::RenderWindow& window, std::size_t& frame) const = 0; // Active l'effet de l'item sur le joueur l'ayant ramassé
   virtual sf::FloatRect getBox() const;
+  virtual void setFont(sf::Font* font);
   bool isUnique() const;
 
 protected:
@@ -35,6 +36,7 @@ protected:
   sf::Texture itemTexture_;
   sf::Sprite itemSprite_;
   int index_; // Correspond à son index dans le tableau de la map
+  sf::Font* font_; // Police d'écriture d'affichage des infos de l'item lorsqu'il est loot
   std::function<void(Player&)> func_;
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
@@ -47,8 +49,8 @@ public:
   PassiveItem();
   PassiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func);
   virtual ~PassiveItem() = default;
-  virtual void info() const override;
-  virtual void activate(Player& player) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé
+  virtual void info(sf::RenderWindow& window) const override;
+  virtual void activate(Player& player, sf::RenderWindow& window, std::size_t& frame) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé
 
 private:
 
@@ -61,8 +63,8 @@ public:
   ActiveItem();
   ActiveItem(const std::string& name, const std::string& effect, int rarity, bool unique, const std::function<void(Player&)>& func);
   virtual ~ActiveItem() = default;
-  virtual void info() const override;
-  virtual void activate(Player& player) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé
+  virtual void info(sf::RenderWindow& window) const override;
+  virtual void activate(Player& player, sf::RenderWindow& window, std::size_t& frame) const override; // Active l'effet de l'item sur le joueur l'ayant ramassé
 
 private:
 
