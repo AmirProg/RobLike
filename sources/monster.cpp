@@ -30,7 +30,7 @@ Monster::Monster(const std::string& pathTexture, const sf::Vector2f& pos, int he
 
 Monster::Monster(const Monster& monster) :
   pathTexture_(monster.pathTexture_),
-  texture_(monster.texture_),
+  monsterName_(monster.monsterName_),
   sprite_(monster.sprite_),
   dimSheet_(monster.dimSheet_),
   health_(monster.health_),
@@ -38,12 +38,26 @@ Monster::Monster(const Monster& monster) :
   damage_(monster.damage_),
   lineSheet_(monster.lineSheet_),
   anim_(sprite_, monster.dimSheet_),
+  dir_(monster.dir_),
+  velocityVect_(monster.velocityVect_),
   ai_(monster.ai_){
 
-  sprite_.setTexture(texture_);
-  anim_.setSpriteSheet(sprite_);
-  anim_.setDim(dimSheet_);
-  anim_.setFrame(150);
+  if(!texture_.loadFromFile(monster.pathTexture_))
+    std::cerr << "Erreur texture monstre";
+
+  else{
+    sprite_.setTexture(texture_);
+    anim_.setSpriteSheet(sprite_);
+    anim_.setDim(dimSheet_);
+    anim_.setFrame(150);
+  }
+
+  std::cout << "COPY MONSTER" << std::endl;
+}
+
+Monster::~Monster(){
+
+  std::cout << "Destruct Monster" << std::endl;
 }
 
 Monster& Monster::operator=(const Monster& monster){
@@ -187,6 +201,10 @@ bool Monster::isAlive() const{
   return health_ > 0;
 }
 
+int Monster::getHealth() const{
+
+  return health_;
+}
 void Monster::draw(sf::RenderTarget& target, sf::RenderStates states) const{
 
   target.draw(sprite_, states);

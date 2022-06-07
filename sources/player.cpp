@@ -1,6 +1,8 @@
 #include "player.hpp"
 #include <iostream>
 #include <string>
+#include "monster.hpp"
+#include <cmath>
 
 Player::Player() : Player("Sans nom", 0, 0)
 {}
@@ -43,7 +45,6 @@ void Player::setFont(const sf::Font& font){
   hpText_.setPosition(60,12);
 }
 
-
 void Player::move(){
 
   if(dir_ == Direction::Left){
@@ -66,10 +67,38 @@ void Player::move(){
     spritePlayer_.move(0,0);
 }
 
-void Player::moveProjectile(){
+sf::Vector2f Player::getPositionNearestMonster(const std::vector<Monster*>& monsters){
 
-  for(size_t k = 0; k < tabProjectile_.size(); k++)
-      tabProjectile_[k].move();
+  /* On calcule la position du monstre le plus proche du joueur courant */
+
+  std::size_t index = 0;
+  float currentMin { std::sqrt((monsters[0]->getBox().left - getBox().left) * (monsters[0]->getBox().left - getBox().left) +
+                     (monsters[0]->getBox().top - getBox().top) * (monsters[0]->getBox().top - getBox().top)) };
+
+  for(std::size_t k = 1; k < std::size(monsters); ++k){
+
+    float temp = { std::sqrt((monsters[k]->getBox().left - getBox().left) * (monsters[k]->getBox().left - getBox().left) +
+                   (monsters[k]->getBox().top - getBox().top) * (monsters[k]->getBox().top - getBox().top)) };
+
+    if(temp < currentMin){
+      currentMin = temp;
+
+      index = k;
+    }
+  }
+
+  return sf::Vector2f(monsters[index]->getBox().left, monsters[index]->getBox().top);
+}
+
+void Player::moveProjectile(const std::vector<Monster*>& monsters){
+
+  for(size_t k = 0; k < tabProjectile_.size(); k++){
+
+      if(!homing_ || std::size(monsters) <= 0)
+        tabProjectile_[k].move();
+      else
+        tabProjectile_[k].move(getPositionNearestMonster(monsters));
+  }
 }
 
 void Player::attack(){
@@ -188,6 +217,17 @@ void Player::increaseSpeedProj(int speed){
 void Player::increaseFireRate(unsigned int fireRate){
 
   fireRate_ -= fireRate;
+}
+
+void Player::healthUp(int hp){
+
+  health_ += hp;
+  updateCharac();
+}
+
+void Player::setHoming(bool homing){
+
+  homing_ = homing;
 }
 
 void Player::animate(){

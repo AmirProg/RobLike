@@ -2,31 +2,33 @@
 #include <iostream>
 
 
-Menu::Menu(const sf::Vector2u& sizeWindow, const std::string& pathFont) : sizeWindow_(sizeWindow), nbWidgets_(0), currentChoice_(1){
+Menu::Menu(const sf::Vector2u& sizeWindow) : sizeWindow_(sizeWindow), nbWidgets_(0), currentChoice_(1){
 
   widgets_.clear();
-
-  if(!font_.loadFromFile(pathFont))
-    throw;
 
   cursor_.setRadius(5);
   cursor_.setFillColor(sf::Color::Yellow);
   cursor_.setPosition(sf::Vector2f(0,0));
-  menuTimer_.restart();
+  //menuTimer_.restart();
 }
 
 void Menu::add(const std::string& textStr, const std::function<void()>& func){
 
   sf::Text text;
-  text.setFont(font_);
+  text.setFont(*font_);
 
-  text.setString(textStr);
   text.setCharacterSize(60);
   text.setFillColor(sf::Color::Red);
-  text.setPosition(sizeWindow_.x/2, sizeWindow_.y/2 + 60 * nbWidgets_);
+  text.setPosition(sizeWindow_.x/2-80, sizeWindow_.y/2 + 60 * nbWidgets_);
+  text.setString(textStr);
   widgets_.push_back(std::pair<sf::Text, std::function<void()>>(text, func));
-  cursor_.setPosition(sizeWindow_.x/2 - 20, sizeWindow_.y/2 + 30 * currentChoice_);
+  cursor_.setPosition(sizeWindow_.x/2 - 90, sizeWindow_.y/2 + 30 * currentChoice_);
   nbWidgets_++;
+}
+
+void Menu::setFont(sf::Font* font){
+
+  font_ = font;
 }
 
 void Menu::updateCursor(){
@@ -38,15 +40,14 @@ void Menu::updateCursor(){
       widgets_[k].first.setFillColor(sf::Color::Red);
   }
 
-  cursor_.setPosition(sizeWindow_.x/2 - 20, sizeWindow_.y/2 + 45 * currentChoice_);
+  cursor_.setPosition(sizeWindow_.x/2 - 110, sizeWindow_.y/2 + 45 * currentChoice_);
 }
 
-void Menu::manageCursor(bool& playing, sf::RenderWindow& window){
+void Menu::manageCursor(sf::RenderWindow& window){
 
   if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)){
 
     if(currentChoice_ == 1){
-      playing = true; // Le joueur a choisi de lancer le jeu
       window.close(); // On ferme le menu
     }
 

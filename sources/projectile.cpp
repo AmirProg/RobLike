@@ -31,6 +31,22 @@ void Projectile::move(){
     circle_.move(0,0);
 }
 
+void Projectile::move(const sf::Vector2f& target){
+
+  sf::Vector2f circlePos { circle_.getPosition() };
+
+  if(circlePos.x > target.x)
+    circle_.move(-speed_,0);
+  if(circlePos.x < target.x)
+    circle_.move(speed_,0);
+  if(circlePos.y > target.y)
+    circle_.move(0,-speed_);
+  if(circlePos.y < target.y)
+    circle_.move(0,speed_);
+  if(circlePos.x == target.x && circlePos.y == target.y)
+    circle_.move(0,0);
+}
+
 void Projectile::setSpeed(unsigned int speed){
 
   speed_ = speed;

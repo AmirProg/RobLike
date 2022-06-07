@@ -1,14 +1,13 @@
 #include "game.hpp"
 #include <vector>
-#include <numeric>
-#include <string_view>
+#include <SFML/Audio.hpp>
 
 Game::Game() :
   p1_("Joueur 1", 3, 10, "character_astronaut_v2.png", sf::Vector2u(4,4)),
-  p2_("Joueur 2", 3, 10, "perso.png", sf::Vector2u(9,4)),
+  p2_("Joueur 2", 3, 10, "astro2.png", sf::Vector2u(4,4)),
   currentMap_(0),
   currentFloor_(0),
-  menu_(sf::Vector2u(0,0), "akashi.ttf"),
+  menu_(sf::Vector2u(0,0)),
   playing_(false){
 
   buildLevels();
@@ -21,10 +20,19 @@ Game::Game() :
   drawableResources_.push_back(&p1_);
   drawableResources_.push_back(&p2_);
 
-  loadBasicMonsters();
+  frameRate_.restart();
+  frame_ = 0;
 }
 
+Game::~Game(){
+
+  for(std::size_t k = 0; k < monsters_.size(); ++k)
+    delete monsters_[k]; // On libère la mémoire
+}
 void Game::buildLevels(){
+
+
+  /* Qu'un seul étage a été codé pour le moment ! */
 
   floors_.clear();
 
@@ -33,6 +41,8 @@ void Game::buildLevels(){
   floors_[0].addMap(TileMap("level1.txt"));
   floors_[0].addMap(TileMap("treasureRoom.txt"));
   floors_[0].addMap(TileMap("level3.txt"));
+  floors_[0].addMap(TileMap("level4.txt"));
+  floors_[0].addMap(TileMap("level5.txt"));
 
   updateLevels();
 
@@ -57,28 +67,42 @@ void Game::updateLevels(){
 /* Ces fonctions sont répétitives, l'idée serait plus tard de lire le fichier texte level.txt
    et ce fichier texte aurait les informations de la map mais aussi des monstres du niveau actuel, il suffirait de le charger */
 
+/* UN BUG EST INTERVENU ICI -> Lorsque je passais les monstres par copie pour éviter d'écrire des allocations dynamiques,
+ il y avait plus de copies que nécessaires et les monstres copiés se
+ retrouvaient parfois liés sans raison apparente (je ne voyais pas le souci)
+ causant parfois la mort de plusieurs monstres à la fois au lieu d'un seul. Problème résolu avec une allocation dynamique (évite les copies donc) */
+
 void Game::loadBasicMonsters(){
 
-  if(currentMap_ == 0){
-
-    Monster zombie("zombie_big.png", sf::Vector2f(100,100), 40, static_cast<unsigned int>(1), 10, sf::Vector2u(3,4), Monster::AI::Tracking);
-    monsters_.push_back(zombie);
-  }
+  if(currentMap_ == 0)
+    monsters_.push_back(new Monster("zombie_big.png", sf::Vector2f(100,100), 40, static_cast<unsigned int>(1), 10, sf::Vector2u(3,4), Monster::AI::Tracking));
 
   else if(currentMap_ == 2){
 
-    Monster robot("robot_1.png", sf::Vector2f(100,100), 100, static_cast<unsigned int>(1), 30, sf::Vector2u(4,4), Monster::AI::Tracking);
-    Monster robot2("seigneur_gobelin.png", sf::Vector2f(450,400), 50, static_cast<unsigned int>(1), 20, sf::Vector2u(3,4), Monster::AI::Tracking);
+    monsters_.push_back(new Monster("robot_1.png", sf::Vector2f(100,100), 100, static_cast<unsigned int>(1), 10, sf::Vector2u(4,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("seigneur_gobelin.png", sf::Vector2f(450,400), 50, static_cast<unsigned int>(1), 15, sf::Vector2u(3,4), Monster::AI::Tracking));
+  }
 
-    monsters_.push_back(robot);
-    monsters_.push_back(robot2);
+  else if(currentMap_ == 3){
+
+    monsters_.push_back(new Monster("robot_1.png", sf::Vector2f(100,100), 100, static_cast<unsigned int>(1), 10, sf::Vector2u(4,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("robot_1.png", sf::Vector2f(450,400), 100, static_cast<unsigned int>(1), 10, sf::Vector2u(4,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("robot_1.png", sf::Vector2f(300,300), 100, static_cast<unsigned int>(1), 10, sf::Vector2u(4,4), Monster::AI::Tracking));
+  }
+
+  else if(currentMap_ == 4){
+
+    monsters_.push_back(new Monster("robot_lunaire.png", sf::Vector2f(100,50), 150, static_cast<unsigned int>(1), 15, sf::Vector2u(3,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("robot_lunaire.png", sf::Vector2f(200,50), 150, static_cast<unsigned int>(1), 15, sf::Vector2u(3,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("robot_lunaire.png", sf::Vector2f(300,50), 150, static_cast<unsigned int>(1), 15, sf::Vector2u(3,4), Monster::AI::Tracking));
+    monsters_.push_back(new Monster("robot_lunaire.png", sf::Vector2f(400,50), 150, static_cast<unsigned int>(1), 15, sf::Vector2u(3,4), Monster::AI::Tracking));
   }
 }
 
 void Game::handleMonstersLogic(const sf::RenderWindow& window){
 
-  for(auto& m : monsters_)
-    m.activeAI(p1_, p2_);
+  for(auto* m : monsters_)
+    m->activeAI(p1_, p2_);
 }
 
 void Game::drawAll(sf::RenderWindow& window) const{
@@ -89,7 +113,7 @@ void Game::drawAll(sf::RenderWindow& window) const{
     window.draw(*target);
 
   for(const auto& target : monsters_)
-    window.draw(target);
+    window.draw(*target);
 }
 
 void foo(){
@@ -152,29 +176,29 @@ void Game::manageInput(sf::RenderWindow& window, sf::Event& event){
     p1_.setDir(Player::Direction::None);
   }
 
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+  if(sf::Keyboard::isKeyPressed(sf::Keyboard::K)){
     p2_.setDir(Player::Direction::Left);
     p2_.setLineSheet(2);
   }
 
-  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::M)){
     p2_.setDir(Player::Direction::Right);
+    p2_.setLineSheet(3);
+
+  }
+
+  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::O)){
+    p2_.setDir(Player::Direction::Up);
     p2_.setLineSheet(4);
 
   }
 
-  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-    p2_.setDir(Player::Direction::Up);
-    p2_.setLineSheet(1);
-
-  }
-
-  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::L)){
     p2_.setDir(Player::Direction::Down);
-    p2_.setLineSheet(3);
+    p2_.setLineSheet(1);
   }
 
-  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Numpad0))
+  else if(sf::Keyboard::isKeyPressed(sf::Keyboard::P))
     p2_.attack();
 
   else{
@@ -193,12 +217,12 @@ void Game::manageCollision(sf::RenderWindow& window){
         p->move();
 
 
-      Collision::collisionWithItem(*p, floors_[currentFloor_].getMap(currentMap_), prop_, items_, "ITEM", window, itemCollectedDelay_);
+      Collision::collisionWithItem(*p, floors_[currentFloor_].getMap(currentMap_), prop_, items_, "ITEM", window, itemCollectedDelay_, frame_);
 
       for(const auto& monster : monsters_){
 
-        if(Collision::intersectEntity(*p, monster))
-          p->getHealthDamage(monster.getDamage());
+        if(Collision::intersectEntity(*p, *monster))
+          p->getHealthDamage(monster->getDamage());
       }
 
       for(size_t k = 0; k < p->getTabProj().size(); k++){
@@ -210,11 +234,11 @@ void Game::manageCollision(sf::RenderWindow& window){
 
         for(std::size_t m = 0; m < std::size(monsters_); m++){
 
-            if(Collision::intersectEntity(monsters_[m], p->getTabProj()[k])){
+            if(Collision::intersectEntity(*monsters_[m], p->getTabProj()[k])){
 
-              monsters_[m].getHealthDamage(p->getDamage()); // On inflige les dégâts du joueur au monstre
+              monsters_[m]->getHealthDamage(p->getDamage()); // On inflige les dégâts du joueur au monstre
 
-              if(!monsters_[m].isAlive())
+              if(monsters_[m]->getHealth() <= 0)
                 monsters_.erase(std::begin(monsters_) + m); // BUG SI ON TUE LE PREMIER MONTRE DU TABLEAU...
 
               p->deleteProj(k); // Si collision avec un monstre on detruit le projectile
@@ -228,10 +252,11 @@ void Game::manageCollision(sf::RenderWindow& window){
   -> on change */
 
     Collision::makeWindowSolid(p1_, window);
+    Collision::makeWindowSolid(p2_, window);
 
     if(!areMonstersAlive() && (Collision::intersectWindowTop(p1_) || Collision::intersectWindowTop(p2_)) && mapTransition_.getElapsedTime().asMilliseconds() > 200){
 
-      if(currentMap_ < 2){
+      if(currentMap_ < floors_[currentFloor_].getNumberMaps()-1){
 
         p1_.setPosition(sf::Vector2f(300,400));
         p2_.setPosition(sf::Vector2f(300,400));
@@ -254,11 +279,11 @@ void Game::manageAnimation(){
     if(p->getDir() != Player::Direction::None)
       p->animate();
 
-    p->moveProjectile();
+    p->moveProjectile(monsters_);
   }
 
   for(auto& m : monsters_)
-    m.animate();
+    m->animate();
 }
 
 void Game::manageGameOver(sf::RenderWindow& window, const sf::Font& font){
@@ -276,8 +301,6 @@ void Game::manageGameOver(sf::RenderWindow& window, const sf::Font& font){
 
     if(timeGameOver_.getElapsedTime().asSeconds() > 5)
       window.close();
-
-    std::cout << "eeee" <<std::endl;
   }
 
   else
@@ -288,7 +311,7 @@ bool Game::areMonstersAlive() const{
 
   bool alive { false };
   for(const auto& m : monsters_)
-    alive = m.isAlive();
+    alive = m->isAlive();
 
   return alive;
 }
@@ -337,24 +360,60 @@ void spaceGodFunc(Player& p){
   damageUp(p);
   damageUp(p);
   damageUp(p);
-  damageUp(p);
-  damageUp(p);
   radiusUp(p);
   radiusUp(p);
-  radiusUp(p);
-  radiusUp(p);
-  fireRateUp(p);
-  fireRateUp(p);
   fireRateUp(p);
   fireRateUp(p);
   speedProjUp(p);
   speedProjUp(p);
-  speedProjUp(p);
+  speedUp(p);
   speedUp(p);
   p.changeColorProj(sf::Color::Yellow);
 }
 
+void matrixFunc(Player& p){
+
+  p.setHoming(true);
+  p.changeColorProj(sf::Color::Green);
+}
+
+void healthUp(Player& p){
+
+  p.healthUp(100);
+}
+
+void Game::startMenu(){
+
+  sf::RenderWindow window { sf::VideoMode(getSizeWindow(*floors_[currentFloor_].getMap(0), sf::Vector2u(10,10)).x, getSizeWindow(*floors_[currentFloor_].getMap(0), sf::Vector2u(10,10)).y), "RobLike" };
+
+  sf::Font font;
+
+  if(!font.loadFromFile("akashi.ttf"))
+    std::cerr << "Erreur font" << std::endl;
+
+  menu_.setSizeWindow(sf::Vector2u(getSizeWindow(*floors_[currentFloor_].getMap(0), sf::Vector2u(10,10)).x, getSizeWindow(*floors_[currentFloor_].getMap(0), sf::Vector2u(10,10)).y));
+  menu_.setFont(&font);
+  showMenu();
+
+  while(window.isOpen()){
+
+    sf::Event event;
+
+    while(window.pollEvent(event)){
+    if(event.type == sf::Event::Closed)
+      window.close();
+    }
+
+    menu_.manageCursor(window);
+
+    window.clear();
+    window.draw(menu_);
+    window.display();
+  }
+}
+
 void Game::start(){
+
   std::size_t indexLevel {};
 
   sf::RenderWindow window { sf::VideoMode(getSizeWindow(*floors_[currentFloor_].getMap(currentMap_), sf::Vector2u(10,10)).x, getSizeWindow(*floors_[currentFloor_].getMap(currentMap_), sf::Vector2u(10,10)).y), "RobLike" };
@@ -365,51 +424,60 @@ void Game::start(){
   if(!font.loadFromFile("akashi.ttf"))
     std::cerr << "Erreur font" << std::endl;
 
+  sf::Music theme;
+  if(!theme.openFromFile("roblike_theme.wav")){
+    std::cerr << "Erreur thème";
+    throw;
+  }
+
+  theme.play();
+
   p1_.setFont(font);
   p2_.setFont(font);
 
   p1_.setGuiPosition(Player::PositionGUI::Up);
   p2_.setGuiPosition(Player::PositionGUI::Down);
 
-  if(!playing_){
-    menu_.setSizeWindow(window.getSize());
-    showMenu();
-  }
+  loadBasicMonsters();
 
   PassiveItem spaceBoots {"Space boots", "Speed UP!", 1, false, speedUp};
   PassiveItem excitedPill {"Excited Pill", "Fire rate up !", 1, false, fireRateUp};
   PassiveItem bloody {"Bloody", "Arrgh ! Vous crachez du sang !", 0, false, bloodyFunc};
+  PassiveItem heart {"Heart", "Je sens la santé...", 1, false, healthUp};
   ActiveItem laserGun {"Laser Gun", "Un pirate de l'espace est né !", 3, false, laserGunFunc};
   ActiveItem spaceGod("Space God", "Je suis tout", 5, true, spaceGodFunc);
+  ActiveItem matrix("Matrix choosen one", "Je ne vois que des lignes de codes", 5, true, matrixFunc);
 
   items_.push_back(&spaceBoots);
   items_.push_back(&excitedPill);
   items_.push_back(&bloody);
+  items_.push_back(&heart);
   items_.push_back(&laserGun);
   items_.push_back(&spaceGod);
+  items_.push_back(&matrix);
+
+  for(auto* item : items_)
+    item->setFont(&font);
 
   while(window.isOpen()){
 
-    if(playing_){ // playing permet de savoir si on doit mettre le jeu en pause ou non (la logique du jeu s'arrête)
-      sf::Event event;
+    sf::Event event;
+
+
+    if(frameRate_.getElapsedTime().asSeconds() > frame_){
+
+      manageCollision(window);
+      manageGameOver(window, font);
       manageInput(window, event);
       manageAnimation();
       handleMonstersLogic(window);
-      manageCollision(window);
+
+      window.clear();
+      frameRate_.restart();
+      frame_ = 0;
     }
 
-    else
-      menu_.manageCursor(playing_, window);
-
-    manageGameOver(window, font);
-
-    window.clear();
-
-    if(!playing_)
-      window.draw(menu_);
-    else
-      drawAll(window);
-
+    drawAll(window);
     window.display();
   }
 }

@@ -46,3 +46,8 @@ TileMap* Floor::getMap(std::size_t index){
   else
     return &maps_[index];
 }
+
+std::size_t Floor::getNumberMaps() const{
+
+  return std::size(maps_);
+}
