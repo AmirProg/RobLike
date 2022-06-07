@@ -37,7 +37,7 @@ Vous pouvez tomber sur une "Item Room", une salle qui se présente toujours avec
 Les items peuvent être actifs ou passifs, les passifs augmentent les stats du personnage, les actifs peuvent agir directement sur les projectiles que vous envoyez.
 Un même joueur peut amasser tout le butin (les deux items), mais on conseille de partager, chacun son coffre c'est moins cruel...
 
-ATTENTION : Les informations de l'item obtenu sont affichés dans la console
+ATTENTION : Les informations de l'item obtenu sont affichées dans la console
 
 Peu de niveaux sont disponibles (5 actuellement), le jeu se finit donc très vite... Vous resterez bloqués sur le dernier niveau après avoir tué les monstres.
 Si l'un des deux joueurs meurt (points de vie à 0), c'est Game Over.
