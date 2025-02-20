@@ -1,4 +1,4 @@
-map_sheet.png
+resources/map_sheet.png
 
 8 2
 
